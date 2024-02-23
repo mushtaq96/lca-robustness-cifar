@@ -186,10 +186,16 @@ if __name__ == "__main__":
 
     # Create training and validation dataloaders
     train_loader = torch.utils.data.DataLoader(
-        train_dataset, batch_size=batch_size, shuffle=True, num_workers=4
+        train_dataset,
+        batch_size=batch_size,
+        shuffle=True,
+        num_workers=4,
     )
     test_loader = torch.utils.data.DataLoader(
-        test_dataset, batch_size=batch_size, shuffle=False, num_workers=4
+        test_dataset,
+        batch_size=batch_size,
+        shuffle=False,
+        num_workers=4,
     )
 
     """ Load LCA model """
@@ -221,7 +227,9 @@ if __name__ == "__main__":
     plt.imshow(weight_grid.float().cpu().numpy())
 
     model = LCA_Frontend_Backbone_CIFAR(
-        lca_model=lca_pretrained, resnet18=resnet18, num_classes=num_classes
+        lca_model=lca_pretrained,
+        resnet18=resnet18,
+        num_classes=num_classes,
     )
     model = model.to(device)
 
@@ -233,7 +241,11 @@ if __name__ == "__main__":
         weight_decay=weight_decay,
     )
 
-    scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+    scheduler = lr_scheduler.StepLR(
+        optimizer,
+        step_size=7,
+        gamma=0.1,
+    )
     criterion = nn.CrossEntropyLoss()
 
     """ Train Model """
@@ -266,7 +278,11 @@ if __name__ == "__main__":
 
     """ Inference of model"""
     plot_inference_results_custom_model(
-        test_loader, model, class_dict, device=device, fig_path=fig_path_inference
+        test_loader,
+        model,
+        class_dict,
+        device=device,
+        fig_path=fig_path_inference,
     )
 
     # """ Save model """
