@@ -150,19 +150,20 @@ if __name__ == '__main__':
             transfer_func="hard_threshold",
         )
     
-    lca_pretrained.load_state_dict(torch.load(LCA_model_path))
-    
-    weight_grid = make_feature_grid(lca_pretrained.get_weights())
-    plt.imshow(weight_grid.float().cpu().numpy())
     
     """ Load Resnet18 model """
     resnet18 = models.resnet18(weights=None)
     print(resnet18)
     
-    num_ftrs = resnet18.fc.in_features
-    resnet18.fc = nn.Linear(num_ftrs, num_classes)
+    # num_ftrs = resnet18.fc.in_features
+    # resnet18.fc = nn.Linear(num_ftrs, num_classes)
     
     resnet18.load_state_dict(torch.load(scratchmodel_path))
+    
+    lca_pretrained.load_state_dict(torch.load(LCA_model_path))
+    
+    weight_grid = make_feature_grid(lca_pretrained.get_weights())
+    plt.imshow(weight_grid.float().cpu().numpy())
 
     model = LCA_Frontend_Backbone_CIFAR(lca_model=lca_pretrained, resnet18=resnet18, num_classes=num_classes)
     model = model.to(device)

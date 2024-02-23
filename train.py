@@ -119,7 +119,7 @@ output:
 """
 def train_model(model, device, train_dataloader, val_dataloader, criterion, optimizer, num_epochs, scheduler=None):
     since = time.time()
-    
+
     # initialize variables for training and validation history
     train_acc_history = []
     val_acc_history = []
@@ -138,94 +138,72 @@ def train_model(model, device, train_dataloader, val_dataloader, criterion, opti
         running_loss = 0.0
         running_corrects = 0
 
-        model.train()  # Set model to training mode
-
+        ##train 
         # Iterate over data.
         for inputs, labels in tqdm(train_dataloader, leave=False, desc="Processing Train data"):
-            # print(labels)
-            # exit()
+
             inputs = inputs.to(device)
             labels = labels.to(device)
 
             # zero the parameter gradients
             optimizer.zero_grad()
 
-            # forward
-            # track history if only in train
-            with torch.set_grad_enabled(True):
-                # Get model outputs and calculate loss
-                outputs = model(inputs)
-                loss = criterion(outputs, labels)
+            outputs = model(inputs)
+            loss = criterion(outputs, labels)
 
-                _, preds = torch.max(outputs, 1)
+            _, preds = torch.max(outputs, 1)
 
-                # backward + optimize only if in training phase
-                loss.backward()
-                optimizer.step()
-
+            loss.backward()
+            optimizer.step()
 
             # statistics
             running_loss += loss.item() * inputs.size(0)
             running_corrects += torch.sum(preds == labels.data)
-        
+
         # calculate loss and accuracy over epoch and add to history
         epoch_loss = running_loss / len(train_dataloader.dataset)
         epoch_acc = running_corrects.double() / len(train_dataloader.dataset)
         train_acc_history.append(epoch_acc)
         train_loss_history.append(epoch_loss)
-        
+
         print('{} Loss: {:.4f} Acc: {:.4f}'.format("train", epoch_loss, epoch_acc))
-        
-        model.eval()   # Set model to evaluate mode
-        
-        # clear loss for validation phase
+
         running_loss = 0.0
         running_corrects = 0
-        
-        for inputs, labels in tqdm(val_dataloader, leave=False, desc="Processing Val data"):
-            inputs = inputs.to(device)
-            labels = labels.to(device)
 
-            # zero the parameter gradients
-            optimizer.zero_grad()
-                
-            with torch.set_grad_enabled(False):
-                
+        ##VAL
+        with torch.no_grad():
+            for inputs, labels in tqdm(val_dataloader, leave=False, desc="Processing Val data"):
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+
                 outputs = model(inputs)
                 loss = criterion(outputs, labels)
-                
+
                 _, preds = torch.max(outputs, 1)
-                
-            # statistics
-            running_loss += loss.item() * inputs.size(0)
-            running_corrects += torch.sum(preds == labels.data)
-            
-        # run scheduler in case of ReduceLROnPlateau
-        if scheduler:
-            scheduler.step()
 
-        epoch_loss = running_loss / len(val_dataloader.dataset)
-        epoch_acc = running_corrects.double() / len(val_dataloader.dataset)
+                # statistics
+                running_loss += loss.item() * inputs.size(0)
+                running_corrects += torch.sum(preds == labels.data)
 
-        print('{} Loss: {:.4f} Acc: {:.4f}'.format("val", epoch_loss, epoch_acc))
+                # run scheduler in case of ReduceLROnPlateau
+                if scheduler:
+                    scheduler.step()
 
-        # deep copy the model
-        if epoch_acc > best_acc:
-            best_acc = epoch_acc
-            best_model_wts = copy.deepcopy(model.state_dict())
-        val_acc_history.append(epoch_acc)
-        val_loss_history.append(epoch_loss)
+            epoch_loss = running_loss / len(val_dataloader.dataset)
+            epoch_acc = running_corrects.double() / len(val_dataloader.dataset)
 
-    print()
+            print('{} Loss: {:.4f} Acc: {:.4f}'.format("val", epoch_loss, epoch_acc))
 
-    time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_acc))
+            val_acc_history.append(epoch_acc)
+            val_loss_history.append(epoch_loss)
 
-    # load best model weights
-    model.load_state_dict(best_model_wts)
-    
-    return model, train_acc_history, val_acc_history, train_loss_history, val_loss_history
+            time_elapsed = time.time() - since
+            print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+            print('Best val Acc: {:4f}'.format(best_acc))
+
+
+    return train_acc_history, val_acc_history, train_loss_history, val_loss_history
 
 
 """
@@ -762,7 +740,6 @@ def train_LCA_firstL_model(model, input_shape, num_classes, batch_size, device, 
     return model, l1, l2, energy, train_acc_history, val_acc_history, train_loss_history, val_loss_history
 
 
-
 """
 ----------------------------------------------------------------------------------------------------------------
 train_pretrained_lca_model
@@ -1189,7 +1166,6 @@ def train_lca_fully_connected(model, input_shape, num_classes, batch_size, devic
         
         print('{} Loss: {:.4f} Acc: {:.4f}'.format("train", epoch_loss, epoch_acc))
         
-        model.eval()   # Set model to evaluate mode
         
         # clear loss for validation phase
         running_loss = 0.0
@@ -1217,9 +1193,7 @@ def train_lca_fully_connected(model, input_shape, num_classes, batch_size, devic
             running_loss += loss.item() * inputs.size(0)
             running_corrects += torch.sum(preds == labels.data)
             
-        # run scheduler in case of ReduceLROnPlateau
-        #if scheduler:
-        #    scheduler.step()
+
     
         epoch_loss = running_loss / len(val_dataloader.dataset)
         epoch_acc = running_corrects.double() / len(val_dataloader.dataset)
@@ -1233,14 +1207,10 @@ def train_lca_fully_connected(model, input_shape, num_classes, batch_size, devic
         val_acc_history.append(epoch_acc)
         val_loss_history.append(epoch_loss)
     
-    print()
     
-    time_elapsed = time.time() - since
-    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_acc))
+        time_elapsed = time.time() - since
+        print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+        print('Best val Acc: {:4f}'.format(best_acc))
     
-    # load best model weights
-    model.load_state_dict(best_model_wts)
     
     return model, l1, l2, energy, train_acc_history, val_acc_history, train_loss_history, val_loss_history
-
