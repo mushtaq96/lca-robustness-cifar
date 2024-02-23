@@ -133,7 +133,7 @@ def train_model(model, device, train_dataloader, val_dataloader, criterion, opti
         adjust_learning_rate(optimizer, epoch) # for cifar only
         print('Epoch {}/{}'.format(epoch, num_epochs - 1))
         print('-' * 10)
-
+        
         # Setup loss for training phase
         running_loss = 0.0
         running_corrects = 0
